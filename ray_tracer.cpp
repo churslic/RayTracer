@@ -89,7 +89,9 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
             phong = lightColor * (rDotV * specular_power);
 
             //Create ambient component
-            Vector_3D<double> ambient;
+            Vector_3D<double> ambient = lightColor * color_ambient;
+
+            color = diffuse + phong + ambient;
         }
     }
 
