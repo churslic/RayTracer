@@ -63,6 +63,7 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
         //If there was an intersection, change the value of the color
         if(world.enable_shadows) {
             //Some initial vectors to compute
+
             //color emitted from light
             Vector_3D<double> lightColor = world.lights[i]->Emitted_Light(ray);
             //vector from intersection point to the light
@@ -72,6 +73,7 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
             double lDotN =
                 Vector_3D<double>::Dot_Product(same_side_normal,
                 toLight);
+            lDotN = max(double(0), lDotN);
             //Reflection vector about the normal
             Vector_3D<double> reflection = same_side_normal*(2*lDotN)
                 - toLight;
@@ -86,7 +88,9 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
             //Create phong component
             Vector_3D<double> phong;
             double rDotV = Vector_3D<double>::Dot_Product(reflection, toEye);
-            phong = lightColor * (rDotV * specular_power);
+            rDotV = max(double(0), rDotV);
+            rDotV = pow(rDotV, specular_power);
+            phong = lightColor * color_specular * rDotV;
 
             //Create ambient component
             Vector_3D<double> ambient = lightColor * color_ambient;
@@ -196,7 +200,6 @@ Vector_3D<double> Sphere::
 Normal(const Vector_3D<double>& location) const
 {
     Vector_3D<double> normal;
-    // TODO: set the normal
     normal = location - center;
     normal.Normalize();
     return normal;
@@ -208,13 +211,17 @@ Normal(const Vector_3D<double>& location) const
 bool Plane::
 Intersection(Ray& ray) const
 {
-    // TODO
     // p(t) = s + td
     //Using equation t = (N dot (p0 - s)) / (N dot d)
     Vector_3D<double> v = x1 - ray.endpoint;
     double a = Vector_3D<double>::Dot_Product(normal, v);
     double b = Vector_3D<double>::Dot_Product(normal, ray.direction);
-    double t = a / b;
+
+    //Make sure b is not 0, initialize t to 0 because we won't
+    //consider that
+    double t = 0;
+    if(b != 0) t = a / b;
+
     if(t > small_t) {
         ray.current_object = this;
         ray.t_max = t;
@@ -256,8 +263,8 @@ World_Position(const Vector_2D<int>& pixel_index)
 const Object* Render_World::
 Closest_Intersection(Ray& ray)
 {
-    // TODO
     Ray temp = ray;
+    //Iterate over all the objects
     for(unsigned int i = 0; i < objects.size(); ++i) {
         //We find an intersection
         if(objects[i]->Intersection(temp)) {
@@ -277,7 +284,6 @@ Closest_Intersection(Ray& ray)
 void Render_World::
 Render_Pixel(const Vector_2D<int>& pixel_index)
 {
-    // TODO
     // Render_World has Camera camera
     // first parameter is the endpoint, so camera.position
     // second parameter is the direciton, so we need the
