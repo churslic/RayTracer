@@ -64,6 +64,7 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
         if(world.enable_shadows) {
             Vector_3D<double> lightColor = world.lights[i]->Emitted_Light(ray);
 
+            //Create diffuse component
             Vector_3D<double> diffuse;
             Vector_3D<double> toLight = world.lights[i]->position
                 - intersection_point;
@@ -72,7 +73,7 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
                 Vector_3D<double>::Dot_Product(same_side_normal,
                 toLight);
 
-            diffuse = world.lights[i]
+            diffuse = lightColor * lDotNormal * color_diffuse;
 
             Vector_3D<double> phong;
             Vector_3D<double> ambient;
