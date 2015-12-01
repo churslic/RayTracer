@@ -62,20 +62,33 @@ Shade_Surface(const Ray& ray,const Object& intersection_object,
 
         //If there was an intersection, change the value of the color
         if(world.enable_shadows) {
+            //Some initial vectors to compute
+            //color emitted from light
             Vector_3D<double> lightColor = world.lights[i]->Emitted_Light(ray);
-
-            //Create diffuse component
-            Vector_3D<double> diffuse;
+            //vector from intersection point to the light
             Vector_3D<double> toLight = world.lights[i]->position
                 - intersection_point;
             toLight.Normalize();
-            double lDotNormal =
+            double lDotN =
                 Vector_3D<double>::Dot_Product(same_side_normal,
                 toLight);
+            //Reflection vector about the normal
+            Vector_3D<double> reflection = same_side_normal*(2*lDotN)
+                - toLight;
+            //Vector from intersection point to camera
+            Vector_3D<double> toEye = world.camera.position - intersection_point;
+            toEye.Normalize();
 
-            diffuse = lightColor * lDotNormal * color_diffuse;
+            //Create diffuse component
+            Vector_3D<double> diffuse;
+            diffuse = lightColor * lDotN * color_diffuse;
 
+            //Create phong component
             Vector_3D<double> phong;
+            double rDotV = Vector_3D<double>::Dot_Product(reflection, toEye);
+            phong = lightColor * (rDotV * specular_power);
+
+            //Create ambient component
             Vector_3D<double> ambient;
         }
     }
